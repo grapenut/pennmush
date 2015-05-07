@@ -29,3 +29,4 @@ Hardcode:
    release being 2003. [SW]
  * Remove ancient @channel foo=on behavior. Reported by Paige. [870-TK]
  * Add git revision, if present, to @version & version(). [994-TK]
+ * game/restart is now auto-generated during 'make update'. [928-TK]
