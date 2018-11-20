@@ -100,8 +100,8 @@
  * second, then the next 20 lines are run once each second. But 50 seconds after
  * it's finished, the quota is back up to 50.
  */
-#define COMMAND_BURST_SIZE 100 /* commands allowed per user in a burst */
-#define COMMANDS_PER_SECOND 1  /* commands per second, prorated by ms. */
+#define COMMAND_BURST_SIZE (options.command_burst_size) /* commands allowed per user in a burst */
+#define COMMANDS_PER_SECOND (options.commands_per_second)  /* commands per second, prorated by ms. */
 
 /* From conf.c */
 bool config_file_startup(const char *conf, int restrictions);
@@ -177,7 +177,8 @@ struct options_table {
   dbref http_handler;     /**< The HTTP Handler (GET, POST, etc) */
   int http_per_second;    /**< Maximum number of commands run from http every
                              second */
-  int connect_fail_limit; /**< Maximum number of connect fails in 10 mins. */
+  int connect_fail_limit; /**< Maximum number of connect fails within timeout interval */
+  int connect_fail_timeout; /**< Interval to wait after reaching fail limit */
   int idle_timeout;       /**< Maximum idle time allowed, in minutes */
   int unconnected_idle_timeout; /**< Maximum idle time for connections without
                                    dbrefs, in minutes */
@@ -369,6 +370,8 @@ struct options_table {
     connlog_db[FILE_PATH_LEN]; /**< Sqlite3 file to use for connection logs. */
   char dict_file[FILE_PATH_LEN]; /**< List of words to load into suggest() db */
   char colors_file[FILE_PATH_LEN]; /**< JSON file holding the colors database */
+  int command_burst_size;	   /**< Maximum size for quick bursts of commands */
+  int commands_per_second;	   /**< Nominal number of commands per second */
 };
 
 typedef struct mssp MSSP;

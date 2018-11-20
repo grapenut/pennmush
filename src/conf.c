@@ -206,6 +206,7 @@ PENNCONF conftable[] = {
   {"max_guests", cf_int, &options.max_guests, 128, 0, "limits"},
   {"max_named_qregs", cf_int, &options.max_named_qregs, 8192, 0, "limits"},
   {"connect_fail_limit", cf_int, &options.connect_fail_limit, 50, 0, "limits"},
+  {"connect_fail_timeout", cf_int, &options.connect_fail_timeout, 600, 0, "limits"},
   {"idle_timeout", cf_time, &options.idle_timeout, 100000, 0, "limits"},
   {"unconnected_idle_timeout", cf_time, &options.unconnected_idle_timeout,
    100000, 0, "limits"},
@@ -343,6 +344,8 @@ PENNCONF conftable[] = {
    "files"},
   {"colors_file", cf_str, options.colors_file, sizeof options.colors_file, 0,
    "files"},
+  {"command_burst_size", cf_int, &options.command_burst_size, 1000, 0, "cmds"},
+  {"commands_per_second", cf_int, &options.commands_per_second, 10, 0, "cmds"},
 
   {NULL, NULL, NULL, 0, 0, NULL}};
 
@@ -1352,6 +1355,8 @@ conf_default_set(void)
   strcpy(options.connlog_db, "log/connlog.db");
   strcpy(options.dict_file, "");
   strcpy(options.colors_file, "txt/colors.json");
+  options.command_burst_size = 100;
+  options.commands_per_second = 1;
 }
 
 #undef set_string_option
@@ -1881,21 +1886,14 @@ show_compile_options(dbref player)
   notify(player, T(" IANA symbolic timezones can be used."));
 #endif
 
+#ifdef PCRE_CONFIG_JIT
   {
-    PCRE2_UCHAR target[50];
-    uint32_t jit = 0;
-
-    pcre2_config(PCRE2_CONFIG_VERSION, target);
-    notify_format(player, T(" Using PCRE %s"), (const char *) target);
-
-    pcre2_config(PCRE2_CONFIG_JIT, &jit);
-    if (jit) {
-      pcre2_config(PCRE2_CONFIG_JITTARGET, target);
-      notify_format(player,
-                    T(" Internal regular expressions are JIT-compiled for %s."),
-                    (const char *) target);
-    }
+    int jit = 0;
+    pcre_config(PCRE_CONFIG_JIT, &jit);
+    if (jit)
+      notify(player, T(" Internal regular expressions are JIT-compiled."));
   }
+#endif
 
 #ifdef HAVE_ICU
   notify(player, T(" (Very limited) Unicode support is enabled."));
